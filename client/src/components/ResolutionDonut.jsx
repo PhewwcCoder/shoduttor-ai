@@ -1,9 +1,8 @@
-// ResolutionDonut — replaces the static "Auto-resolved %" KPI card with a small
-// donut: Auto-Resolved by AI (green) vs Escalated to Humans (amber). Sized to fit
-// the existing metric-row card height (donut + legend laid out horizontally).
+// ResolutionDonut — just the donut (Auto-Resolved green vs Escalated amber) with
+// the resolved % in the center and hover tooltips. The card chrome + legend live
+// in StatsBar so the donut can be composed into the Resolution Rate card.
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 
-// Match the dashboard badge palette: resolved=green, escalated=amber.
 const COLORS = { resolved: "#16a34a", escalated: "#f59e0b" };
 
 function DonutTooltip({ active, payload, total }) {
@@ -17,9 +16,11 @@ function DonutTooltip({ active, payload, total }) {
   );
 }
 
-export default function ResolutionDonut({ resolved = 0, escalated = 0 }) {
+export default function ResolutionDonut({ resolved = 0, escalated = 0, size = 116 }) {
   const total = resolved + escalated;
   const pct = total ? Math.round((resolved / total) * 100) : 0;
+  const outer = size / 2;
+  const inner = outer - 13;
 
   const data = [
     { name: "Auto-Resolved by AI", value: resolved, key: "resolved" },
@@ -27,57 +28,40 @@ export default function ResolutionDonut({ resolved = 0, escalated = 0 }) {
   ];
 
   return (
-    <div className="flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        {/* Donut with the resolved % in the center */}
-        <div className="relative shrink-0" style={{ width: 56, height: 56 }}>
-          {total === 0 ? (
-            // Empty state: a flat gray ring so the card never looks broken.
-            <div className="h-14 w-14 rounded-full border-[7px] border-gray-100" />
-          ) : (
-            <PieChart width={56} height={56}>
-              <Pie
-                data={data}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                innerRadius={16}
-                outerRadius={27}
-                startAngle={90}
-                endAngle={-270}
-                paddingAngle={resolved > 0 && escalated > 0 ? 2 : 0}
-                stroke="none"
-                isAnimationActive={false}
-              >
-                {data.map((d) => (
-                  <Cell key={d.key} fill={COLORS[d.key]} />
-                ))}
-              </Pie>
-              <Tooltip
-                content={<DonutTooltip total={total} />}
-                wrapperStyle={{ outline: "none", zIndex: 30 }}
-              />
-            </PieChart>
-          )}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="text-[11px] font-bold text-gray-900">{pct}%</span>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="min-w-0">
-          <div className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
-            Resolution
-          </div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-gray-600">
-            <span className="inline-block h-2 w-2 rounded-full" style={{ background: COLORS.resolved }} />
-            Auto-resolved <span className="font-semibold text-gray-900">{resolved}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-600">
-            <span className="inline-block h-2 w-2 rounded-full" style={{ background: COLORS.escalated }} />
-            Escalated <span className="font-semibold text-gray-900">{escalated}</span>
-          </div>
-        </div>
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
+      {total === 0 ? (
+        <div
+          className="rounded-full border-gray-100"
+          style={{ width: size, height: size, borderWidth: 13 }}
+        />
+      ) : (
+        <PieChart width={size} height={size}>
+          <Pie
+            data={data}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            innerRadius={inner}
+            outerRadius={outer}
+            startAngle={90}
+            endAngle={-270}
+            paddingAngle={resolved > 0 && escalated > 0 ? 2 : 0}
+            stroke="none"
+            cornerRadius={4}
+            isAnimationActive={false}
+          >
+            {data.map((d) => (
+              <Cell key={d.key} fill={COLORS[d.key]} />
+            ))}
+          </Pie>
+          <Tooltip content={<DonutTooltip total={total} />} wrapperStyle={{ outline: "none", zIndex: 30 }} />
+        </PieChart>
+      )}
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold leading-none text-gray-900">{pct}%</span>
+        <span className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-400">
+          Resolved
+        </span>
       </div>
     </div>
   );
