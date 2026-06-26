@@ -1,0 +1,90 @@
+PATHAO HELP CENTER / FAQ
+(last updated 2023)
+
+=== RIDES ===
+
+How do I book a ride?
+Open the app, set your pickup point and destination, then tap "Confirm Pathao". A nearby rider will accept. you can see the rider details once accepted. Make sure your GPS is ON otherwise pickup point may be wrong.
+
+fare estimate -
+The app shows an estimated fare BEFORE you confirm. Note: this is an estimate only, final fare can be different depending on actual distance, waiting time and route. Toll charges (eg. bridge) are added to the fare.
+
+Surge / high demand pricing:
+During rain, peak hours (8-10am & 5-8pm) or high demand the fare may be higher than usual. This is automatic. There is no way to remove surge, you can wait few minutes and check again, sometimes it goes down.
+
+
+=== PATHAO FOOD ===
+
+Ordering food is easy - go to Pathao Food, choose a restaurant, add items to cart and place order. Delivery charge depends on distance.
+
+Delivery time is usually 30-45 mins but can be more during peak time / bad weather. Please be patient, the delivery rider is doing their best.
+
+"Restaurant unavailable" -- means the restaurant is currently closed or not accepting orders. Try another restaurant or order later. Some restaurants have their own timing (eg only open after 12pm).
+
+if food arrives cold or wrong item delivered, contact in-app support with your order ID and a photo. refund/replacement is case by case basis.
+
+
+=== PAYMENTS ===
+
+We accept:
+- bKash
+- Cash (cash on the spot, pay the rider directly)
+- Card (debit/credit)
+- Pathao Taka (wallet balance)
+
+For cash rides please keep change ready, riders may not have change for big notes (eg 1000 taka).
+bKash payment - you will be redirected to bkash, enter PIN to confirm. if money deducted but ride not paid, it is auto refunded within 3-7 working days.
+
+
+=== CANCELLATION & REFUND ===
+
+You can cancel a ride before the rider arrives. If you cancel after the rider already started coming / reached pickup, a cancellation charge may apply.
+
+If the RIDER cancels:
+no charge to you. just book again.
+
+driver cancelled my ride after accepting -- sometimes riders cancel due to distance or traffic. you will not be charged. repeated issue? report the rider.
+
+Refund policy:
+Refunds for cancelled rides/orders (where payment was made) go back to original payment method. bKash 3-7 working days, card 7-14 working days. Pathao Taka refunds are instant.
+
+
+=== DRIVER / RIDER ISSUES ===
+
+Rider not moving on the map?
+sometimes GPS lags. wait 1-2 min. if rider is really not moving for long time, call the rider directly (number in app). still no response - cancel and rebook, you wont be charged if rider isnt moving.
+
+wrong location / rider going wrong way:
+call the rider and guide them. you can also share live location.
+
+Bad behaviour / rude driver:
+We take this seriously. Please rate the trip and add a complaint with details. Our team reviews all complaints. drivers with repeated complaints are removed from platform.
+
+
+=== ACCOUNT ===
+
+cant login?
+- check your number is correct (with country code +880)
+- you will get an OTP sms, enter it. if no OTP, tap resend after 60 sec.
+- OTP still not coming? sms inbox may be full or network issue, try again later.
+
+Change phone number:
+to change your registered number you need to contact support, this cannot be done from app directly for security reason. keep your NID/account info ready for verification.
+
+Account banned / blocked:
+Accounts may be suspended for violation of terms (fake bookings, abuse, payment fraud, multiple cancellations etc). if you think this is a mistake, email support with your registered number. we will review.
+
+
+=== PATHAO TAKA (wallet) ===
+
+What is Pathao Taka?
+Pathao Taka is your in-app wallet. you can use the balance to pay for rides and food. sometimes we give cashback/promo as Pathao Taka.
+
+How to add money -
+Add Pathao Taka via bKash or card from the wallet section.
+
+does pathao taka expire?
+Promotional Pathao Taka (cashback, offers) may have an expiry date - check offer terms. Pathao Taka that YOU added normally does not expire. expired balance cannot be refunded.
+
+------
+still need help? in-app support is available 24/7.

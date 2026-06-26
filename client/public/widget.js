@@ -6,7 +6,7 @@
  *           data-primary-color="#00A550"
  *           data-position="bottom-right"
  *           data-greeting="Apnar ki help lagbe?"
- *           data-api-url="https://shoduttor-api.onrender.com"
+ *           data-api-url="https://shoduttor-ai.onrender.com"
  *           defer></script>
  *
  * Everything lives inside a Shadow DOM so the host site's CSS can't touch the
@@ -30,7 +30,7 @@
     primaryColor: attr("data-primary-color", "#00A550"),
     position: attr("data-position", "bottom-right"),
     greeting: attr("data-greeting", "How can I help you?"),
-    apiUrl: attr("data-api-url", "https://shoduttor-api.onrender.com"),
+    apiUrl: attr("data-api-url", "https://shoduttor-ai.onrender.com"),
   };
 
   var isBottom = config.position.indexOf("bottom") !== -1;
