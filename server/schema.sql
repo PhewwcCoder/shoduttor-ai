@@ -32,6 +32,17 @@ create table if not exists tickets (
   created_at timestamptz default now()
 );
 
+-- FAQ upload log — one row per uploaded document, so the dashboard can show
+-- which .txt files make up each business's knowledge base. Optional: the app
+-- still works without it (upload logging just no-ops if this table is missing).
+create table if not exists faq_uploads (
+  id uuid primary key default gen_random_uuid(),
+  business_id text not null,
+  source_file text,
+  chunk_count int,
+  created_at timestamptz default now()
+);
+
 -- Vector similarity search function used by retrieval.js.
 create or replace function match_faq(
   query_embedding vector(1536),

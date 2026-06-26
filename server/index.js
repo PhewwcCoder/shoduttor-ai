@@ -8,6 +8,7 @@ const chatRoute = require("./routes/chat");
 const nluRoute = require("./routes/nlu");
 const faqRoute = require("./routes/faq");
 const ticketsRoute = require("./routes/tickets");
+const businessesRoute = require("./routes/businesses");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/nlu", nluRoute);
 // FAQ upload (chunk + embed + store) and ticket listing for the admin dashboard.
 app.use("/api/faq", faqRoute);
 app.use("/api/tickets", ticketsRoute);
+app.use("/api/businesses", businessesRoute);
 
 // Catch-all error handler so a thrown error (e.g. multer file-size) returns
 // JSON instead of crashing the process.

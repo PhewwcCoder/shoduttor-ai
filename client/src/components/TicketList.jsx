@@ -18,7 +18,7 @@ export default function TicketList({ tickets, loading }) {
         <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
           <tr>
             <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Original (Banglish)</th>
+            <th className="px-4 py-3">Customer message</th>
             <th className="px-4 py-3">Translation</th>
             <th className="px-4 py-3">Intent</th>
             <th className="px-4 py-3">Sentiment</th>

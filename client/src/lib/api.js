@@ -16,6 +16,22 @@ export async function getStats(businessId) {
   return res.json();
 }
 
+// Distinct business IDs that have data (for the dynamic selector).
+export async function getBusinesses() {
+  const res = await fetch(`${API_URL}/api/businesses`);
+  if (!res.ok) throw new Error(`Failed to load businesses (${res.status})`);
+  const data = await res.json();
+  return data.businesses || [];
+}
+
+// The FAQ files that make up a business's knowledge base.
+export async function getFaqSources(businessId) {
+  const res = await fetch(`${API_URL}/api/faq/sources?business_id=${encodeURIComponent(businessId)}`);
+  if (!res.ok) throw new Error(`Failed to load FAQ sources (${res.status})`);
+  const data = await res.json();
+  return data.sources || [];
+}
+
 // Upload a plain-text FAQ. Accepts a File (from drag/drop) — sent as multipart.
 export async function uploadFAQ(businessId, file) {
   const form = new FormData();

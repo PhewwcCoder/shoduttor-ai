@@ -3,13 +3,15 @@ import { useEffect, useState, useCallback } from "react";
 import StatsBar from "../components/StatsBar";
 import FAQUploader from "../components/FAQUploader";
 import TicketList from "../components/TicketList";
-import { getTickets, getStats } from "../lib/api";
+import BusinessSelect from "../components/BusinessSelect";
+import { getTickets, getStats, getBusinesses } from "../lib/api";
 
-// Example IDs across industries — the field is free-text, any business works.
-const EXAMPLE_BUSINESSES = ["grameenphone", "robi", "deshi-threads", "dhaka-bank", "foodpanda-bd"];
+// Example IDs across industries, always offered so a fresh DB isn't empty.
+const EXAMPLE_BUSINESSES = ["grameenphone", "pathao", "robi", "deshi-threads", "dhaka-bank", "foodpanda-bd"];
 
 export default function AdminDashboard() {
   const [businessId, setBusinessId] = useState("grameenphone");
+  const [businesses, setBusinesses] = useState(EXAMPLE_BUSINESSES);
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,20 @@ export default function AdminDashboard() {
     return () => clearInterval(id);
   }, [load]);
 
+  // Fetch the real list of businesses with data; merge with examples (deduped).
+  const refreshBusinesses = useCallback(async () => {
+    try {
+      const live = await getBusinesses();
+      setBusinesses([...new Set([...EXAMPLE_BUSINESSES, ...live])]);
+    } catch {
+      /* keep examples on failure */
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshBusinesses();
+  }, [refreshBusinesses]);
+
   return (
     <div className="min-h-screen">
       {/* Top bar */}
@@ -46,18 +62,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-500">Business ID</label>
-          <input
-            list="business-examples"
-            value={businessId}
-            onChange={(e) => setBusinessId(e.target.value.trim())}
-            className="rounded-md border border-gray-300 px-2 py-1 text-sm"
-            placeholder="any-business-id"
-          />
-          <datalist id="business-examples">
-            {EXAMPLE_BUSINESSES.map((b) => (
-              <option key={b} value={b} />
-            ))}
-          </datalist>
+          <BusinessSelect value={businessId} options={businesses} onChange={setBusinessId} />
         </div>
       </header>
 
@@ -68,9 +73,16 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <StatsBar stats={stats} />
+        <StatsBar
+          stats={stats}
+          resolved={tickets.filter((t) => t.resolved).length}
+          escalated={tickets.filter((t) => !t.resolved).length}
+        />
 
-        <FAQUploader businessId={businessId} onUploaded={load} />
+        <FAQUploader
+          businessId={businessId}
+          onUploaded={() => { load(); refreshBusinesses(); }}
+        />
 
         <div>
           <div className="mb-2 flex items-center justify-between">

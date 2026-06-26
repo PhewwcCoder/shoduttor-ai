@@ -1,12 +1,29 @@
-// FAQUploader — drag-and-drop (or click) a .txt FAQ file, upload it, show result.
-import { useState, useRef } from "react";
-import { uploadFAQ } from "../lib/api";
+// FAQUploader — drag-and-drop (or click) a .txt FAQ file, upload it, show result,
+// and list the .txt files that currently make up this business's knowledge base.
+import { useState, useRef, useEffect, useCallback } from "react";
+import { uploadFAQ, getFaqSources } from "../lib/api";
 
 export default function FAQUploader({ businessId, onUploaded }) {
   const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState(null); // { type: "ok"|"error", text }
   const [busy, setBusy] = useState(false);
+  const [sources, setSources] = useState([]);
   const inputRef = useRef(null);
+
+  // Load the current knowledge base for this business.
+  const loadSources = useCallback(async () => {
+    try {
+      setSources(await getFaqSources(businessId));
+    } catch {
+      setSources([]);
+    }
+  }, [businessId]);
+
+  // Refresh the file list whenever the business changes.
+  useEffect(() => {
+    setStatus(null);
+    loadSources();
+  }, [loadSources]);
 
   async function handleFile(file) {
     if (!file) return;
@@ -18,7 +35,8 @@ export default function FAQUploader({ businessId, onUploaded }) {
     setStatus(null);
     try {
       const res = await uploadFAQ(businessId, file);
-      setStatus({ type: "ok", text: `${res.chunks_embedded} chunks embedded successfully` });
+      setStatus({ type: "ok", text: `${file.name}: ${res.chunks_embedded} chunks embedded successfully` });
+      await loadSources();
       onUploaded?.(res);
     } catch (err) {
       setStatus({ type: "error", text: err.message });
@@ -64,6 +82,36 @@ export default function FAQUploader({ businessId, onUploaded }) {
           {status.text}
         </div>
       )}
+
+      {/* Knowledge base: which .txt files this business's bot is answering from. */}
+      <div className="mt-4">
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Knowledge base · {businessId}
+        </div>
+        {sources.length === 0 ? (
+          <div className="rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-400">
+            No FAQ uploaded yet — the bot will escalate every message until you add one.
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-100 rounded-md border border-gray-100">
+            {sources.map((s) => (
+              <li key={s.source_file} className="flex items-center justify-between px-3 py-2 text-sm">
+                <span className="flex items-center gap-2 text-gray-800">
+                  <span>📄</span>
+                  <span className="font-medium">{s.source_file}</span>
+                  {s.uploads > 1 && (
+                    <span className="text-xs text-gray-400">(re-uploaded {s.uploads}×)</span>
+                  )}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {s.chunks} chunk{s.chunks === 1 ? "" : "s"}
+                  {s.last_uploaded ? ` · ${new Date(s.last_uploaded).toLocaleDateString()}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
