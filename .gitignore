@@ -4,3 +4,6 @@ node_modules/
 *.log
 dist/
 .DS_Store
+
+# Local-only learning doc (kept on disk, not tracked)
+demo/web-scraping-guide.pdf
