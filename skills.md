@@ -32,6 +32,15 @@ clamped to 0–1) so downstream code is always safe.
 Intents: `billing · technical · subscription · product · delivery · account · complaint · general`
 (universal set — fits telecom, retail, banking, food delivery, SaaS).
 
+```mermaid
+flowchart LR
+    M["Customer message<br/>Banglish · Bengali · English"] --> G["GPT-4o<br/>temperature 0.1<br/>response_format: json_object"]
+    SP["Engineered system prompt<br/>+ Banglish worked examples"] -. guides .-> G
+    G --> J{{"Raw JSON from model"}}
+    J --> S["Sanitize server-side<br/>· intent/sentiment → allowed set<br/>· confidence clamped 0–1<br/>· translation fallback"]
+    S --> O["intent · location · sentiment<br/>english_translation · confidence"]
+```
+
 ---
 
 ## Skill 2 — FAQ Semantic Retrieval
@@ -123,6 +132,15 @@ escalated) is logged to the `tickets` table for the admin dashboard and stats.
 **Result:** average handling time drops because agents read a structured summary
 (`intent + location + sentiment + English translation`) rather than decoding raw Romanized Bengali.
 
+```mermaid
+flowchart LR
+    N["NLU fields<br/>intent · location · sentiment · translation"] --> R{Resolved<br/>by FAQ?}
+    R -->|yes| T1["Log ticket<br/>resolved = true"]
+    R -->|no| MAP["Map intent → department"]
+    MAP --> T2["Create + route ticket<br/>pre-filled English summary"]
+    T2 --> DEP["Billing · Technical · Subscriptions<br/>Product · Logistics · Account<br/>Customer Relations · General"]
+```
+
 ---
 
 ## Skill 4 — Shadow DOM Widget Embedding
@@ -150,15 +168,27 @@ runs on third-party domains. Verified against hostile host-page CSS in browser t
 > would otherwise restyle and break it. Shadow DOM is the isolation layer that makes "one script tag,
 > works everywhere" actually true.
 
+```mermaid
+flowchart TD
+    HCSS["Host page CSS<br/>generic button and * rules"] -. cannot reach in .-> Sealed
+    H["Host website (any business)"] --> SC["one &lt;script src='/widget.js'&gt;"]
+    SC --> HOST["#shoduttor-root host element"]
+    HOST --> SR["attachShadow → Shadow Root<br/>:host all: initial (full reset)"]
+    subgraph Sealed["🛡️ Sealed CSS boundary (Shadow DOM)"]
+        SR --> L["Launcher bubble"]
+        SR --> PNL["Chat panel · messages · input"]
+    end
+    PNL -->|POST /api/chat| API[(Shoduttor API)]
+```
+
 ---
 
 ### How the skills compose
 
-```
-customer message
-   │
-   ▼  Skill 1 (NLU)            → intent, location, sentiment, English translation
-   ▼  Skill 2 (FAQ retrieval)  → answer from the business's FAQ, or ESCALATE
-   ├─ resolved → reply instantly in the widget (Skill 4)
-   └─ escalate → Skill 3 (routing) → structured ticket to the right department
+```mermaid
+flowchart TD
+    C["📩 Customer message"] --> S1["Skill 1 · NLU<br/>→ intent · location · sentiment · translation"]
+    S1 --> S2["Skill 2 · FAQ Retrieval (RAG)"]
+    S2 -->|match found| R["✅ Instant grounded reply<br/>in the widget · Skill 4"]
+    S2 -->|no match / ESCALATE| S3["Skill 3 · Routing<br/>→ structured ticket to the right department"]
 ```
