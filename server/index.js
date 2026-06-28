@@ -18,6 +18,15 @@ const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "1mb" }));
 
+// Friendly root so the bare URL doesn't show Express's "Cannot GET /".
+app.get("/", (req, res) => {
+  res.json({
+    service: "shoduttor.ai API",
+    status: "ok",
+    docs: "POST /api/chat · POST /api/faq/upload · GET /api/tickets · GET /health",
+  });
+});
+
 // Health check — used to confirm the server is up (and to wake Render's free tier).
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "shoduttor.ai", time: new Date().toISOString() });

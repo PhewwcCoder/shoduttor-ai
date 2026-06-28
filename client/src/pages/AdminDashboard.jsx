@@ -8,7 +8,7 @@ import { ChatIcon } from "../components/icons";
 import { getTickets, getStats, getBusinesses } from "../lib/api";
 
 // Example IDs across industries, always offered so a fresh DB isn't empty.
-const EXAMPLE_BUSINESSES = ["grameenphone", "pathao", "robi", "deshi-threads", "dhaka-bank", "foodpanda-bd"];
+const EXAMPLE_BUSINESSES = ["grameenphone", "pathao", "jerseyverse", "robi", "deshi-threads", "dhaka-bank", "foodpanda-bd"];
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 export default function AdminDashboard() {
