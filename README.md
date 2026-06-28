@@ -59,6 +59,53 @@ flowchart LR
 2. **FAQ retrieval** — the translation is embedded (`text-embedding-3-small`) and matched against the business's FAQ vectors in **Supabase pgvector** (cosine similarity). A confident match is answered instantly.
 3. **Smart routing** — no match → a ticket is created with the structured summary and routed to the right department. Agents read clean English, never raw Banglish.
 
+## 🧠 The four AI capabilities (under the hood)
+
+Shoduttor is built from four composable AI skills. *(Full breakdown + the production-grade RAG checklist: [`skills.md`](skills.md).)*
+
+### 1 · Banglish NLU
+Every message is parsed by **GPT-4o** (JSON mode, `temperature 0.1`) into a clean, structured object — then **sanitized server-side** (values coerced to an allowed set, confidence clamped) so downstream code is always safe.
+
+```mermaid
+flowchart LR
+    M["Customer message<br/>Banglish · Bengali · English"] --> G["GPT-4o<br/>temperature 0.1<br/>response_format: json_object"]
+    SP["Engineered system prompt<br/>+ Banglish worked examples"] -. guides .-> G
+    G --> J{{"Raw JSON from model"}}
+    J --> S["Sanitize server-side<br/>· intent/sentiment → allowed set<br/>· confidence clamped 0–1<br/>· translation fallback"]
+    S --> O["intent · location · sentiment<br/>english_translation · confidence"]
+```
+
+```jsonc
+"amar mb kete gese keno"
+→ { "intent": "billing", "location": null, "sentiment": "frustrated",
+    "english_translation": "Why was my internet data deducted?", "confidence": 0.9 }
+```
+
+### 2 · FAQ Semantic Retrieval — RAG, built from scratch (no LangChain)
+Instead of answering from memory (and hallucinating), Shoduttor **retrieves** the business's own FAQ chunks and **augments** the prompt so GPT-4o **generates** a grounded answer. Chunk → embed (`text-embedding-3-small`) → store in **Supabase pgvector** → cosine top-4 → grounded answer, or `ESCALATE` if the FAQ doesn't cover it.
+
+```mermaid
+flowchart TD
+    subgraph Ingest["📥 Ingestion — once, on FAQ upload"]
+        U[FAQ .txt] --> CH[Split into chunks<br/>blank-line boundaries]
+        CH --> E1[Embed each chunk<br/>text-embedding-3-small · 1536d]
+        E1 --> VS[(Supabase pgvector<br/>faq_chunks)]
+    end
+    subgraph Ask["💬 Retrieval — on every message"]
+        Q[Question<br/>English translation] --> E2[Embed the question]
+        E2 --> S[Cosine top-4<br/>match_faq · threshold 0.3]
+        VS --> S
+        S --> G[GPT-4o answers using<br/>ONLY those chunks]
+        G --> D{grounded answer<br/>or ESCALATE}
+    end
+```
+
+### 3 · Smart Ticket Routing
+Unresolved messages become **structured tickets** routed to the right department (Billing · Technical · Subscriptions · Product · Logistics · Account · Customer Relations · General). Agents read a pre-filled English summary (`intent + location + sentiment + translation`) instead of decoding raw Banglish — cutting average handling time.
+
+### 4 · Shadow DOM Widget
+The embeddable widget attaches a **Shadow DOM** (`:host { all: initial }`), so the host site's CSS **can't reach in** and the widget's CSS **can't leak out** — "one script tag, works everywhere" actually holds. Zero dependencies, pure vanilla JS, verified against hostile host-page CSS.
+
 ## ✨ Features
 
 - 🌐 **Multilingual NLU** — understands Banglish, Bengali, English and mixes of them.
@@ -157,9 +204,10 @@ curl -X POST https://shoduttor-ai.onrender.com/api/chat \
   -d '{"message":"amar net cholche na","business_id":"grameenphone"}'
 ```
 
-## 🧠 The four AI capabilities
+## 📚 Docs
 
-See [`skills.md`](skills.md) for details — **Banglish NLU**, **FAQ semantic retrieval**, **ticket routing**, and the **Shadow-DOM widget**. Agent/contributor notes live in [`AGENTS.md`](AGENTS.md).
+- [`skills.md`](skills.md) — deep dive on all four AI skills, every diagram, and the production-grade RAG checklist
+- [`AGENTS.md`](AGENTS.md) — contributor / AI-agent guide (structure, conventions, test commands)
 
 ## ☁️ Deployment
 
