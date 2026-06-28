@@ -1,0 +1,20 @@
+# Render Blueprint — deploy the Shoduttor.ai backend in one click.
+# In Render: New + → Blueprint → connect this repo. It reads this file, then
+# prompts you to paste the three secret values below (they are NOT stored here).
+services:
+  - type: web
+    name: shoduttor-ai
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false

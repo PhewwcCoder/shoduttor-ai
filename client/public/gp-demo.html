@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grameenphone — Customer Support</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; color: #1a1a1a; background: #fff; }
+      .nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 40px; border-bottom: 1px solid #eee; }
+      .nav .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #00A550; }
+      .nav .brand .dot { width: 28px; height: 28px; border-radius: 50%; background: #00A550; display: inline-block; }
+      .nav ul { display: flex; gap: 28px; list-style: none; font-size: 14px; color: #444; }
+      .hero { background: linear-gradient(135deg, #00A550 0%, #007a3d 100%); color: #fff; padding: 80px 40px; text-align: center; }
+      .hero h1 { font-size: 40px; margin-bottom: 14px; }
+      .hero p { font-size: 18px; opacity: 0.92; max-width: 620px; margin: 0 auto; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; max-width: 1000px; margin: 56px auto; padding: 0 40px; }
+      .card { border: 1px solid #eee; border-radius: 14px; padding: 24px; }
+      .card h3 { color: #00A550; margin-bottom: 8px; font-size: 17px; }
+      .card p { color: #666; font-size: 14px; line-height: 1.6; }
+      .banner { background: #f4fbf6; border: 1px solid #cdeed8; border-radius: 14px; max-width: 1000px; margin: 0 auto 64px; padding: 22px 28px; }
+      .banner b { color: #007a3d; }
+      .banner code { background: #e7f6ec; padding: 2px 6px; border-radius: 6px; font-size: 13px; }
+      footer { border-top: 1px solid #eee; padding: 28px 40px; text-align: center; color: #999; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="brand"><span class="dot"></span> grameenphone</div>
+      <ul><li>Personal</li><li>Business</li><li>Offers</li><li>Support</li></ul>
+    </nav>
+
+    <section class="hero">
+      <h1>How can we help you today?</h1>
+      <p>Get instant answers about your balance, internet, packages and network — in Banglish, any time.</p>
+    </section>
+
+    <div class="grid">
+      <div class="card"><h3>Balance &amp; Billing</h3><p>Check your balance, view active subscriptions, and understand deductions.</p></div>
+      <div class="card"><h3>Internet &amp; Packages</h3><p>Activate data packs, check remaining MB, and fix slow connections.</p></div>
+      <div class="card"><h3>Network</h3><p>Report poor signal or no 4G in your area and track resolution.</p></div>
+    </div>
+
+    <div class="banner">
+      <p>👉 <b>Try the Banglish AI assistant</b> in the bottom-right corner. Type something like
+      <code>amar mb kete nise keno</code> or <code>Dhanmondi te 4g nai</code> and get an instant answer.</p>
+    </div>
+
+    <footer>© Grameenphone · Demo page powered by Shoduttor.ai</footer>
+
+    <!-- ============================================================= -->
+    <!-- THE ONE LINE A BUSINESS PASTES — production version.          -->
+    <!-- widget.js is served from this same site (/widget.js); it calls -->
+    <!-- the live Shoduttor API (Render) by its built-in default, so no  -->
+    <!-- data-api-url override is needed here.                           -->
+    <!-- ============================================================= -->
+    <script
+      src="/widget.js"
+      data-business-id="grameenphone"
+      data-primary-color="#00A550"
+      data-position="bottom-right"
+      data-greeting="Apnar ki help lagbe?"
+      defer
+    ></script>
+  </body>
+</html>
