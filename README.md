@@ -1,0 +1,173 @@
+<div align="center">
+
+# 🗨️ Shoduttor.ai
+
+### Multilingual, Banglish-native AI customer support — one line of code, works on any website.
+
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)](https://expressjs.com)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](https://openai.com)
+[![Supabase](https://img.shields.io/badge/Supabase-pgvector-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
+[![Tailwind](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+
+</div>
+
+> **শদুত্তর (Shoduttor)** = *"the sweet/right answer."* An AI that gives the right answer to every customer message — even when it's typed in **Banglish** ("amar net cholche na"), Bengali, English, or a messy mix of all three.
+
+---
+
+## 🔗 Live demo
+
+| What | Link |
+|------|------|
+| 🧑‍💼 **Admin dashboard** | [open `/admin`](https://shoduttor-ai-git-main-op143aryan-5491s-projects.vercel.app/admin) |
+| 💬 **Chat widget demo** (Grameenphone · Pathao · JerseyVerse) | [open `/demo`](https://shoduttor-ai-git-main-op143aryan-5491s-projects.vercel.app/demo) |
+| 🟢 **Embedded-on-a-site demo** | [open `/gp-demo.html`](https://shoduttor-ai-git-main-op143aryan-5491s-projects.vercel.app/gp-demo.html) |
+| 📦 **The widget script** | [`/widget.js`](https://shoduttor-ai-git-main-op143aryan-5491s-projects.vercel.app/widget.js) |
+| ⚙️ **Backend API** | [`/health`](https://shoduttor-ai.onrender.com/health) |
+
+> ⏳ The API runs on Render's free tier and sleeps after 15 min idle — the first request may take ~30s to wake.
+
+---
+
+## The problem
+
+Millions of customers in Bangladesh type support messages in **Banglish** — Bengali romanized into English letters, mixed with English:
+
+- `"amar mb kete nise keno"` → why was my internet data deducted?
+- `"Dhanmondi te 4g nai"` → there's no 4G signal in Dhanmondi
+- `"Brazil jersey er price koto"` → how much is the Brazil jersey?
+
+Rule-based chatbots fail completely — the words aren't in any dictionary and the grammar is mixed. So **every** message goes to a human agent who must read, decode, categorize, and reply by hand. At scale that's millions in support overhead.
+
+## How it works
+
+Shoduttor is a three-layer pipeline. It's **business-agnostic** — telecom, retail, banking, food delivery, anything — because answers come from each business's own uploaded FAQ.
+
+```mermaid
+flowchart LR
+    A[Customer message<br/>Banglish / Bengali / English] --> B[Layer 1 · NLU<br/>GPT-4o]
+    B -->|intent · location · sentiment · English translation| C[Layer 2 · FAQ Retrieval<br/>embeddings + pgvector]
+    C -->|match found| D[✅ Instant answer in the widget]
+    C -->|no match| E[Layer 3 · Smart Routing]
+    E --> F[🎫 Structured ticket to the right<br/>department with a pre-filled summary]
+```
+
+1. **NLU** — every message is parsed by GPT-4o into `{ intent, location, sentiment, english_translation, confidence }`.
+2. **FAQ retrieval** — the translation is embedded (`text-embedding-3-small`) and matched against the business's FAQ vectors in **Supabase pgvector** (cosine similarity). A confident match is answered instantly.
+3. **Smart routing** — no match → a ticket is created with the structured summary and routed to the right department. Agents read clean English, never raw Banglish.
+
+## ✨ Features
+
+- 🌐 **Multilingual NLU** — understands Banglish, Bengali, English and mixes of them.
+- 🧩 **One-line embed** — a single `<script>` tag, isolated from the host site via **Shadow DOM**.
+- 📄 **Bring-your-own FAQ** — upload a `.txt`; it's chunked, embedded, and answered from automatically.
+- 🎯 **Intent · location · sentiment** extraction on every message.
+- 🎫 **Auto-routing** to departments (Billing, Technical, Logistics, …) with pre-filled summaries.
+- 📊 **Live admin dashboard** — KPI cards, a resolution donut, and an auto-refreshing ticket table.
+- 🎨 **Per-business branding** — color, greeting, and even the launcher icon (e.g. ⚽ for a football store).
+
+## 🧩 Add it to any website
+
+Paste **one line** before `</body>` — no rebuild, works on WordPress, Shopify, Wix, custom sites:
+
+```html
+<script
+  src="https://shoduttor-ai-git-main-op143aryan-5491s-projects.vercel.app/widget.js"
+  data-business-id="your-business-id"
+  data-primary-color="#00A550"
+  data-greeting="Apnar ki help lagbe?"
+  data-icon="💬"
+  defer>
+</script>
+```
+
+| Attribute | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `data-business-id` | ✅ | — | Your business ID (matches your uploaded FAQ) |
+| `data-primary-color` | | `#00A550` | Hex theme color |
+| `data-position` | | `bottom-right` | `bottom-right` · `bottom-left` · `top-right` · `top-left` |
+| `data-greeting` | | `How can I help you?` | First message when the widget opens |
+| `data-icon` | | `💬` | Launcher bubble icon (emoji) |
+
+## 🛠 Tech stack
+
+| Layer | Tech |
+|-------|------|
+| Widget | Vanilla JS + **Shadow DOM** (zero dependencies) |
+| Frontend | React 18 · Vite 6 · Tailwind v4 · Recharts |
+| Backend | Node.js · Express |
+| AI | OpenAI **GPT-4o** (NLU + answers) · **text-embedding-3-small** |
+| Database | **Supabase** (Postgres + pgvector) |
+| Hosting | **Vercel** (frontend) · **Render** (backend) |
+
+## 📁 Project structure
+
+```
+shoduttor/
+├── client/                 # React frontend (admin + demo + widget.js)
+│   ├── src/pages/          # AdminDashboard, WidgetDemo
+│   ├── src/components/      # ChatWidget, FAQUploader, TicketList, ResolutionDonut, BusinessSelect …
+│   └── public/widget.js    # the standalone Shadow-DOM embeddable widget
+├── server/                 # Express backend
+│   ├── routes/             # chat · nlu · faq · tickets · businesses
+│   ├── services/           # nlu · retrieval · embeddings
+│   └── schema.sql          # Supabase tables + match_faq()
+├── demo/                   # sample FAQs + gp-demo.html
+├── render.yaml             # Render blueprint (backend)
+└── client/vercel.json      # Vercel SPA config (frontend)
+```
+
+## ⚙️ Run locally
+
+**Backend** (port 3001):
+```bash
+cd server
+npm install
+# create server/.env with OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY
+node index.js
+```
+
+**Frontend** (port 5173):
+```bash
+cd client
+npm install
+# create client/.env with VITE_API_URL=http://localhost:3001
+npm run dev      # → http://localhost:5173/admin
+```
+
+> Run [`server/schema.sql`](server/schema.sql) once in the Supabase SQL editor first (enables pgvector + creates the tables).
+
+## 🔌 API reference
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `POST` | `/api/chat` | Main pipeline — NLU → FAQ → routing. Body: `{ message, business_id }` |
+| `POST` | `/api/nlu` | NLU only (debug). Body: `{ message }` |
+| `POST` | `/api/faq/upload` | Upload a `.txt` FAQ (multipart `file` or JSON `text`) |
+| `GET`  | `/api/tickets?business_id=…` | List tickets (+ `/stats`) |
+| `GET`  | `/api/businesses` | Distinct business IDs with data |
+| `GET`  | `/health` | Liveness check |
+
+```bash
+curl -X POST https://shoduttor-ai.onrender.com/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"amar net cholche na","business_id":"grameenphone"}'
+```
+
+## 🧠 The four AI capabilities
+
+See [`skills.md`](skills.md) for details — **Banglish NLU**, **FAQ semantic retrieval**, **ticket routing**, and the **Shadow-DOM widget**. Agent/contributor notes live in [`AGENTS.md`](AGENTS.md).
+
+## ☁️ Deployment
+
+- **Backend → Render:** *New → Blueprint* on the repo (reads [`render.yaml`](render.yaml)), paste the 3 secrets.
+- **Frontend → Vercel:** import the repo, root = `client`, framework = Vite, set `VITE_API_URL` to the Render URL.
+
+---
+
+<div align="center">
+<sub>Built with Banglish in mind 🇧🇩 — Banglish is our edge, not our limit.</sub>
+</div>
