@@ -54,6 +54,46 @@ answer in [`server/services/retrieval.js`](server/services/retrieval.js); SQL in
 > Why semantic search? Customers never phrase questions the way an FAQ is written. Embeddings let
 > "amar net cholche na" match an FAQ entry titled "Internet not working" even with zero shared words.
 
+### This is RAG (Retrieval-Augmented Generation)
+
+Skill 2 is a from-scratch **RAG** pipeline — built directly on the OpenAI + Supabase SDKs, **without
+LangChain or any RAG framework**. Instead of letting the model answer from memory (and hallucinate),
+we *retrieve* the business's own FAQ chunks and *augment* the prompt so the model *generates* a grounded
+answer.
+
+```mermaid
+flowchart TD
+    subgraph Ingest["📥 Ingestion — once, on FAQ upload"]
+        U[FAQ .txt] --> CH[Split into chunks<br/>blank-line boundaries]
+        CH --> E1[Embed each chunk<br/>text-embedding-3-small · 1536d]
+        E1 --> VS[(Supabase pgvector<br/>faq_chunks)]
+    end
+    subgraph Ask["💬 Retrieval — on every message"]
+        Q[Question<br/>English translation] --> E2[Embed the question]
+        E2 --> S[Cosine top-4<br/>match_faq · threshold 0.3]
+        VS --> S
+        S --> G[GPT-4o answers using<br/>ONLY those chunks]
+        G --> D{grounded answer<br/>or ESCALATE}
+    end
+```
+
+### How it maps to a production-grade RAG checklist
+
+| Production RAG practice | Shoduttor today | To productionize |
+|---|---|---|
+| Chunking | split on blank lines, >20 chars | tune size/overlap, semantic chunking |
+| Embedding model | `text-embedding-3-small` (1536d) | evaluate models on domain data |
+| Vector store | Supabase **pgvector** (ivfflat, cosine) | keep; add HNSW at scale |
+| Multi-tenant filter | ✅ per-business (`business_id`) | — already done |
+| Hybrid search (vector + keyword/BM25) | vector only | add BM25 + rank fusion |
+| Reranking top-k | none | add a reranker (e.g. Cohere) |
+| Evaluation (precision@k, recall@k) | none | add a labeled eval set + metrics |
+| Idempotent ingestion / dedup | appends chunks | deterministic IDs to dedupe |
+
+> Honest framing: the **core RAG loop is complete and correct** (embed → vector search → grounded
+> generation with an anti-hallucination guard). Hybrid search, reranking, and evaluation are the
+> upgrades you'd add to scale it from a strong prototype to a hardened production system.
+
 ---
 
 ## Skill 3 — Ticket Routing
