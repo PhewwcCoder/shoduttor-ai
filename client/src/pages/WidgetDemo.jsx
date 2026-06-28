@@ -12,6 +12,7 @@ const DEMOS = {
     primaryColor: "#00A550",
     greeting: "Apnar ki help lagbe?",
     example: "amar net cholche na",
+    icon: "💬",
   },
   pathao: {
     label: "Pathao Demo",
@@ -19,6 +20,15 @@ const DEMOS = {
     primaryColor: "#E2136E",
     greeting: "Ki help lagbe apnar?",
     example: "amar order ta kobe ashbe",
+    icon: "💬",
+  },
+  jerseyverse: {
+    label: "JerseyVerse Demo",
+    businessId: "jerseyverse",
+    primaryColor: "#ED5D1F",
+    greeting: "Kon jersey ta khujchen?",
+    example: "Brazil jersey er price koto?",
+    icon: "⚽",
   },
 };
 
@@ -70,6 +80,7 @@ export default function WidgetDemo() {
         businessId={demo.businessId}
         primaryColor={demo.primaryColor}
         greeting={demo.greeting}
+        icon={demo.icon}
       />
     </div>
   );

@@ -30,6 +30,7 @@
     primaryColor: attr("data-primary-color", "#00A550"),
     position: attr("data-position", "bottom-right"),
     greeting: attr("data-greeting", "How can I help you?"),
+    icon: attr("data-icon", "💬"),
     apiUrl: attr("data-api-url", "https://shoduttor-ai.onrender.com"),
   };
 
@@ -92,7 +93,7 @@
   var launcher = document.createElement("button");
   launcher.className = "launcher";
   launcher.setAttribute("aria-label", "Open chat");
-  launcher.innerHTML = "&#128172;"; // 💬
+  launcher.textContent = config.icon; // 💬 by default, or e.g. ⚽ via data-icon
 
   var panel = document.createElement("div");
   panel.className = "panel";
@@ -207,13 +208,13 @@
   var greeted = false;
   function openPanel() {
     panel.classList.add("open");
-    launcher.innerHTML = "&#10005;"; // ✕
+    launcher.textContent = "✕";
     if (!greeted) { addMessage("bot", config.greeting); greeted = true; }
     inputEl.focus();
   }
   function closePanel() {
     panel.classList.remove("open");
-    launcher.innerHTML = "&#128172;"; // 💬
+    launcher.textContent = config.icon;
   }
   launcher.addEventListener("click", function () {
     panel.classList.contains("open") ? closePanel() : openPanel();

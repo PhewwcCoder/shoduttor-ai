@@ -8,6 +8,7 @@ export default function ChatWidget({
   businessId = "grameenphone",
   primaryColor = "#00A550",
   greeting = "Apnar ki help lagbe?",
+  icon = "💬",
 }) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -120,7 +121,7 @@ export default function ChatWidget({
         style={{ background: primaryColor, width: 60, height: 60 }}
         aria-label="Open chat"
       >
-        {open ? "✕" : "💬"}
+        {open ? "✕" : icon}
       </button>
     </div>
   );
