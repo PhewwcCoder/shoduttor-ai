@@ -1,51 +1,71 @@
-// faq.js — POST /api/faq/upload : business owner uploads their FAQ document.
-// Accepts either a multipart file (field name "file") or a JSON body { text }.
-// We chunk it, embed each chunk, and store the vectors in Supabase.
+// faq.js — POST /api/faq/upload : business owner uploads their knowledge file.
+// Accepts a multipart file (.txt / .pdf / .xlsx / .xls) OR a JSON body { text }.
+// We extract text, chunk it, embed each chunk, and store the vectors in Supabase.
 const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 
-const { embedFAQChunks, chunkFAQ } = require("../services/embeddings");
+const { embedFAQChunks, chunkFAQ, deleteFAQByFile } = require("../services/embeddings");
+const { extractText } = require("../services/extract");
 const { supabase } = require("../lib/supabase");
 
-// Keep the uploaded file in memory (small .txt files) — no disk writes needed.
+// Keep the uploaded file in memory. PDFs/spreadsheets can be larger than .txt.
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB cap
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB cap
 });
+
+// Remove a file's previous upload-log rows (so re-upload shows one fresh entry).
+async function clearUploadLog(businessId, sourceFile) {
+  try {
+    await supabase.from("faq_uploads").delete().eq("business_id", businessId).eq("source_file", sourceFile);
+  } catch (e) {
+    console.warn("[shoduttor] clearUploadLog:", e.message);
+  }
+}
 
 router.post("/upload", upload.single("file"), async (req, res) => {
   const businessId = req.body.business_id || req.query.business_id;
-  // Text comes from the uploaded file buffer, or a raw "text" field in the body.
-  // Coerce defensively — a non-string body field must never crash the process.
-  const rawText = req.file ? req.file.buffer.toString("utf8") : req.body.text;
-  const faqText = typeof rawText === "string" ? rawText : "";
-
   if (!businessId) {
     return res.status(400).json({ error: "'business_id' is required." });
   }
-  if (!faqText || faqText.trim().length === 0) {
-    return res.status(400).json({ error: "No FAQ text provided (upload a file or send 'text')." });
-  }
 
-  // Tell the caller how many chunks/embeddings this will cost before running.
-  const previewChunks = chunkFAQ(faqText);
-  if (previewChunks.length === 0) {
-    return res.status(400).json({
-      error: "FAQ produced 0 usable chunks. Separate entries with blank lines and keep each over 20 characters.",
-    });
-  }
-
-  // The source filename: real name for file uploads, or an optional "filename"
-  // field for pasted text, falling back to a neutral label.
+  // The source filename: real name for files, or an optional "filename" for text.
   const sourceFile =
     (req.file && req.file.originalname) || req.body.filename || "Pasted text";
 
+  // Extract text: parse PDF/XLSX from the file buffer, else use the .txt/body text.
+  let faqText;
   try {
-    const count = await embedFAQChunks(faqText, businessId);
+    if (req.file) {
+      faqText = await extractText(req.file.buffer, req.file.originalname, req.file.mimetype);
+    } else {
+      faqText = typeof req.body.text === "string" ? req.body.text : "";
+    }
+  } catch (e) {
+    return res.status(400).json({ error: `Could not read the file: ${e.message}` });
+  }
 
-    // Log the upload so the dashboard can show this business's knowledge base.
-    // Non-fatal: if the faq_uploads table doesn't exist yet, just warn.
+  if (!faqText || faqText.trim().length === 0) {
+    return res.status(400).json({ error: "No readable text found (upload a .txt/.pdf/.xlsx, or send 'text')." });
+  }
+
+  const previewChunks = chunkFAQ(faqText);
+  if (previewChunks.length === 0) {
+    return res.status(400).json({
+      error: "Produced 0 usable chunks. The file may be empty, scanned/image-only, or too short.",
+    });
+  }
+
+  try {
+    // Replace-on-reupload: clear this file's old chunks + log first, so the same
+    // filename updates in place instead of stacking duplicates.
+    const replaced = await deleteFAQByFile(businessId, sourceFile);
+    await clearUploadLog(businessId, sourceFile);
+
+    const count = await embedFAQChunks(faqText, businessId, sourceFile);
+
+    // Log the upload (non-fatal if the faq_uploads table is missing).
     try {
       const { error } = await supabase.from("faq_uploads").insert({
         business_id: businessId,
@@ -62,10 +82,28 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       business_id: businessId,
       source_file: sourceFile,
       chunks_embedded: count,
-      message: `${count} chunks embedded successfully`,
+      replaced_chunks: replaced,
+      message: `${count} chunks embedded successfully${replaced ? ` (replaced ${replaced} old)` : ""}`,
     });
   } catch (err) {
     console.error("[shoduttor] /api/faq/upload error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/faq/source — remove one file from a business's knowledge base.
+// Body: { business_id, source_file }
+router.delete("/source", async (req, res) => {
+  const { business_id, source_file } = req.body || {};
+  if (!business_id || !source_file) {
+    return res.status(400).json({ error: "'business_id' and 'source_file' are required." });
+  }
+  try {
+    const removed = await deleteFAQByFile(business_id, source_file);
+    await clearUploadLog(business_id, source_file);
+    res.json({ status: "ok", source_file, removed_chunks: removed });
+  } catch (err) {
+    console.error("[shoduttor] /api/faq/source DELETE error:", err);
     res.status(500).json({ error: err.message });
   }
 });

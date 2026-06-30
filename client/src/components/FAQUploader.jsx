@@ -1,17 +1,20 @@
-// FAQUploader — "Knowledge base" card: a big dropzone on the left, and an
-// "Active source" panel on the right listing the .txt files this business's bot
-// is answering from (filename, chunk count, embed date).
+// FAQUploader — "Knowledge base" card: a dropzone (accepts .txt / .pdf / .xlsx)
+// on the left, and an "Active source" panel on the right listing the files this
+// business's bot answers from — each removable, and replaced in place on re-upload.
 import { useState, useRef, useEffect, useCallback } from "react";
-import { uploadFAQ, getFaqSources } from "../lib/api";
-import { UploadIcon, FileIcon, CheckIcon } from "./icons";
+import { uploadFAQ, getFaqSources, deleteFaqSource } from "../lib/api";
+import { UploadIcon, FileIcon, CheckIcon, TrashIcon } from "./icons";
 
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const ACCEPT = ".txt,.pdf,.xlsx,.xls";
+const isAllowed = (name) => /\.(txt|pdf|xlsx|xls)$/i.test(name || "");
 
 export default function FAQUploader({ businessId, onUploaded }) {
   const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState(null); // { type, text }
   const [busy, setBusy] = useState(false);
   const [sources, setSources] = useState([]);
+  const [deleting, setDeleting] = useState(null); // filename being deleted
   const inputRef = useRef(null);
 
   const loadSources = useCallback(async () => {
@@ -29,21 +32,38 @@ export default function FAQUploader({ businessId, onUploaded }) {
 
   async function handleFile(file) {
     if (!file) return;
-    if (!file.name.endsWith(".txt") && file.type !== "text/plain") {
-      setStatus({ type: "error", text: "Please upload a plain .txt file." });
+    if (!isAllowed(file.name)) {
+      setStatus({ type: "error", text: "Please upload a .txt, .pdf, or .xlsx file." });
       return;
     }
     setBusy(true);
     setStatus(null);
     try {
       const res = await uploadFAQ(businessId, file);
-      setStatus({ type: "ok", text: `${file.name}: ${res.chunks_embedded} chunks embedded` });
+      const replaced = res.replaced_chunks ? ` (replaced ${res.replaced_chunks} old)` : "";
+      setStatus({ type: "ok", text: `${file.name}: ${res.chunks_embedded} chunks embedded${replaced}` });
       await loadSources();
       onUploaded?.(res);
     } catch (err) {
       setStatus({ type: "error", text: err.message });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleDelete(sourceFile) {
+    if (!window.confirm(`Remove "${sourceFile}" from ${cap(businessId)}'s knowledge base?`)) return;
+    setDeleting(sourceFile);
+    setStatus(null);
+    try {
+      const res = await deleteFaqSource(businessId, sourceFile);
+      setStatus({ type: "ok", text: `Removed ${sourceFile} (${res.removed_chunks} chunks).` });
+      await loadSources();
+      onUploaded?.(res); // refresh dashboard counts too
+    } catch (err) {
+      setStatus({ type: "error", text: err.message });
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -57,8 +77,9 @@ export default function FAQUploader({ businessId, onUploaded }) {
             <h2 className="text-base font-bold text-gray-900">Knowledge base</h2>
           </div>
           <p className="mt-1 max-w-md text-xs text-gray-500">
-            Drop a plain-text FAQ for <span className="font-semibold">{cap(businessId)}</span>. Shoduttor
-            reads, chunks and embeds it so the bot can answer from it.
+            Drop a <span className="font-semibold">.txt, .pdf, or .xlsx</span> for{" "}
+            <span className="font-semibold">{cap(businessId)}</span> — FAQs, policies, catalogs.
+            Shoduttor reads, chunks and embeds it so the bot can answer from it.
           </p>
         </div>
         {sources.length > 0 && (
@@ -81,7 +102,7 @@ export default function FAQUploader({ businessId, onUploaded }) {
           <input
             ref={inputRef}
             type="file"
-            accept=".txt,text/plain"
+            accept={ACCEPT}
             className="hidden"
             onChange={(e) => handleFile(e.target.files[0])}
           />
@@ -89,11 +110,11 @@ export default function FAQUploader({ businessId, onUploaded }) {
             <UploadIcon />
           </div>
           <div className="mt-3 text-sm font-medium text-gray-700">
-            {busy ? "Embedding…" : "Drag & drop a .txt file"}
+            {busy ? "Reading & embedding…" : "Drag & drop a file"}
           </div>
           {!busy && (
             <div className="text-xs text-gray-400">
-              or <span className="font-medium text-green-600">click to choose</span>
+              .txt · .pdf · .xlsx — or <span className="font-medium text-green-600">click to choose</span>
             </div>
           )}
           {status && (
@@ -106,16 +127,16 @@ export default function FAQUploader({ businessId, onUploaded }) {
         {/* Active source panel */}
         <div>
           <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-            Active source
+            Active sources
           </div>
           {sources.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-200 px-4 py-6 text-center text-xs text-gray-400">
-              No FAQ uploaded yet — the bot will escalate every message until you add one.
+              No file uploaded yet — the bot will escalate every message until you add one.
             </div>
           ) : (
             <div className="space-y-2">
               {sources.map((s) => (
-                <div key={s.source_file} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
+                <div key={s.source_file} className="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
                     <FileIcon />
                   </div>
@@ -124,10 +145,16 @@ export default function FAQUploader({ businessId, onUploaded }) {
                     <div className="text-[11px] text-gray-500">
                       {s.chunks} chunk{s.chunks === 1 ? "" : "s"}
                       {s.last_uploaded ? ` · embedded ${new Date(s.last_uploaded).toLocaleDateString()}` : ""}
-                      {s.uploads > 1 ? ` · re-uploaded ${s.uploads}×` : ""}
                     </div>
                   </div>
-                  <span className="h-2 w-2 shrink-0 rounded-full bg-green-500" title="Indexed" />
+                  <button
+                    onClick={() => handleDelete(s.source_file)}
+                    disabled={deleting === s.source_file}
+                    title="Remove this file"
+                    className="shrink-0 rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                  >
+                    {deleting === s.source_file ? "…" : <TrashIcon />}
+                  </button>
                 </div>
               ))}
             </div>

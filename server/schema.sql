@@ -12,6 +12,10 @@ create table if not exists faq_chunks (
   created_at timestamptz default now()
 );
 
+-- Tag each chunk with the file it came from, so a single source can be
+-- deleted or replaced. (Safe to run on an existing table.)
+alter table faq_chunks add column if not exists source_file text;
+
 -- Vector similarity search index.
 create index if not exists faq_chunks_embedding_idx on faq_chunks
 using ivfflat (embedding vector_cosine_ops)

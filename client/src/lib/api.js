@@ -32,6 +32,18 @@ export async function getFaqSources(businessId) {
   return data.sources || [];
 }
 
+// Delete one file from a business's knowledge base.
+export async function deleteFaqSource(businessId, sourceFile) {
+  const res = await fetch(`${API_URL}/api/faq/source`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ business_id: businessId, source_file: sourceFile }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `Delete failed (${res.status})`);
+  return data;
+}
+
 // Upload a plain-text FAQ. Accepts a File (from drag/drop) — sent as multipart.
 export async function uploadFAQ(businessId, file) {
   const form = new FormData();
