@@ -8,4 +8,5 @@ dist/
 # Local-only personal assets (kept on disk, not tracked)
 demo/web-scraping-guide.pdf
 demo/shoduttor-linkedin-carousel.pdf
+demo/shoduttor-linkedin-video.mp4
 demo/linkedin-post.md
