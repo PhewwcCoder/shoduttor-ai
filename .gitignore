@@ -5,5 +5,7 @@ node_modules/
 dist/
 .DS_Store
 
-# Local-only learning doc (kept on disk, not tracked)
+# Local-only personal assets (kept on disk, not tracked)
 demo/web-scraping-guide.pdf
+demo/shoduttor-linkedin-carousel.pdf
+demo/linkedin-post.md
