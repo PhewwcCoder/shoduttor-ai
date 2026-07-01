@@ -39,10 +39,10 @@ export default function WidgetDemo() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-100">
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Shoduttor.ai — Widget Demo</h1>
+        <h1 className="text-3xl font-bold text-gray-900">সদুত্তর.ai — Widget Demo</h1>
         <p className="mt-3 text-gray-600">
           One widget for every customer. It understands messages in <strong>Banglish, Bengali,
-          and English</strong> alike, and answers from whatever FAQ a business uploads — telecom,
+          and English</strong> alike, and answers from whatever knowledge base a business uploads — telecom,
           retail, banking, food delivery, anything. Banglish is our edge, not our limit.
         </p>
 

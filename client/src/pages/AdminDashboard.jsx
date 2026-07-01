@@ -62,7 +62,7 @@ export default function AdminDashboard() {
               <ChatIcon />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900">Shoduttor<span className="text-green-600">.ai</span></span>
+              <span className="text-lg font-bold text-gray-900">সদুত্তর<span className="text-green-600">.ai</span></span>
               <span className="hidden text-sm text-gray-400 sm:inline">Admin Dashboard</span>
             </div>
           </div>

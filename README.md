@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🗨️ Shoduttor.ai
+# 🗨️ সদুত্তর.ai
 
 ### Multilingual, Banglish-native AI customer support — one line of code, works on any website.
 

@@ -62,7 +62,7 @@ export default function ChatWidget({
           {/* header */}
           <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: primaryColor }}>
             <div>
-              <div className="text-sm font-semibold">Shoduttor.ai Support</div>
+              <div className="text-sm font-semibold">সদুত্তর.ai Support</div>
             </div>
             <button onClick={() => setOpen(false)} className="text-white/90 hover:text-white" aria-label="Close">✕</button>
           </div>

@@ -99,7 +99,7 @@
   panel.className = "panel";
   panel.innerHTML =
     '<div class="header">' +
-      '<div><div class="title">Shoduttor.ai Support</div></div>' +
+      '<div><div class="title">সদুত্তর.ai Support</div></div>' +
       '<button class="close" aria-label="Close">✕</button>' +
     "</div>" +
     '<div class="messages"></div>' +
@@ -107,7 +107,7 @@
       '<input type="text" placeholder="Type a message…" />' +
       '<button class="send" aria-label="Send">➤</button>' +
     "</div>" +
-    '<div class="powered">Powered by Shoduttor.ai</div>';
+    '<div class="powered">Powered by সদুত্তর.ai</div>';
 
   shadow.appendChild(launcher);
   shadow.appendChild(panel);
