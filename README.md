@@ -14,7 +14,7 @@
 
 </div>
 
-> **শদুত্তর (Shoduttor)** = *"the sweet/right answer."* An AI that gives the right answer to every customer message — even when it's typed in **Banglish** ("amar net cholche na"), Bengali, English, or a messy mix of all three.
+> **সদুত্তর (Shoduttor)** = *"a fitting, correct answer."* An AI that gives the right answer to every customer message — even when it's typed in **Banglish** ("amar net cholche na"), Bengali, English, or a messy mix of all three.
 
 ---
 
@@ -34,17 +34,20 @@
 
 ## The problem
 
-Millions of customers in Bangladesh type support messages in **Banglish** — Bengali romanized into English letters, mixed with English:
+Bangladesh has **170M+ mobile users**, and almost none of them message businesses in clean English or formal Bangla. They type **Banglish** — Bengali sounds written in English letters, mixed with English words, with no fixed spelling and mixed grammar. It looks different in every message:
 
-- `"amar mb kete nise keno"` → why was my internet data deducted?
-- `"Dhanmondi te 4g nai"` → there's no 4G signal in Dhanmondi
-- `"Brazil jersey er price koto"` → how much is the Brazil jersey?
+| Industry | A real customer message | What they mean |
+|---|---|---|
+| 📱 Telecom | `amar net cholche na` | my internet isn't working |
+| 🛵 Food delivery | `khabar ashe nai keno` | why hasn't my food arrived? |
+| 👕 Clothing / retail | `ei jersey ta stock e ache?` | is this jersey in stock? |
+| ✈️ Travel | `tour package koto?` | how much is the tour package? |
 
-Rule-based chatbots fail completely — the words aren't in any dictionary and the grammar is mixed. So **every** message goes to a human agent who must read, decode, categorize, and reply by hand. At scale that's millions in support overhead.
+Traditional chatbots are built for English or formal Bangla, so they **fail on this completely** — the words aren't in any dictionary and the grammar is inconsistent. The result: *every* message gets dumped on a human agent to read, decode, categorize, and answer by hand. At scale that's **millions of taka in avoidable support cost** — plus slow replies and frustrated customers.
 
 ## How it works
 
-Shoduttor is a three-layer pipeline. It's **business-agnostic** — telecom, retail, banking, food delivery, anything — because answers come from each business's own uploaded FAQ.
+Shoduttor is a three-layer pipeline. It's **business-agnostic** — telecom, retail, banking, food delivery, anything — because answers come from each business's own uploaded knowledge base (FAQs, policies, catalogs).
 
 ```mermaid
 flowchart LR
@@ -105,6 +108,16 @@ Unresolved messages become **structured tickets** routed to the right department
 
 ### 4 · Shadow DOM Widget
 The embeddable widget attaches a **Shadow DOM** (`:host { all: initial }`), so the host site's CSS **can't reach in** and the widget's CSS **can't leak out** — "one script tag, works everywhere" actually holds. Zero dependencies, pure vanilla JS, verified against hostile host-page CSS.
+
+## 🛡️ Cost & abuse protection
+
+The chat endpoint is public (any website can embed the widget) and every message costs OpenAI credits — so it's guarded by three server-side layers, keyed on things an attacker can't cheaply reset (**no fragile client-side tokens**):
+
+- **Per-IP rate limiting** — 20 messages/min per IP; bursts get a `429`.
+- **Per-business daily budget** — a hard, durable cap (default **60 messages/business/day**) stored **atomically** in Supabase and checked *before* any OpenAI call, so an over-quota business spends **nothing**.
+- **Message-length cap** — bounds per-request token cost.
+
+Everything is env-configurable, and the quota check **fails open** (never breaks live chat) if the DB is unreachable.
 
 ## ✨ Features
 
