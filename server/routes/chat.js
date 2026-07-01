@@ -14,6 +14,33 @@ const { parseMessage } = require("../services/nlu");
 const { resolveWithFAQ } = require("../services/retrieval");
 const { supabase } = require("../lib/supabase");
 
+// Abuse / cost limits (overridable via env).
+const DAILY_LIMIT = Number(process.env.DAILY_BUSINESS_LIMIT) || 60; // messages/business/day
+const MAX_LEN = Number(process.env.MAX_MESSAGE_LEN) || 500; // chars per message
+
+// Consume 1 unit of a business's daily quota — durable + atomic in Supabase.
+// Returns { allowed, count }. Fails OPEN (allows) if the RPC/table isn't set up
+// yet, so the demo never breaks; the per-IP rate limit still applies.
+async function consumeQuota(businessId) {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase.rpc("consume_quota", {
+      p_business_id: businessId,
+      p_day: day,
+      p_limit: DAILY_LIMIT,
+    });
+    if (error) {
+      console.warn("[shoduttor] consume_quota skipped:", error.message);
+      return { allowed: true, count: 0 };
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    return { allowed: row ? row.allowed : true, count: row ? row.count : 0 };
+  } catch (e) {
+    console.warn("[shoduttor] consume_quota threw:", e.message);
+    return { allowed: true, count: 0 };
+  }
+}
+
 // Map an extracted intent to the human department that handles it.
 // Generic, business-agnostic department names that fit any industry.
 const DEPARTMENT_BY_INTENT = {
@@ -54,6 +81,21 @@ router.post("/", async (req, res) => {
     return res
       .status(400)
       .json({ error: "Both 'message' and 'business_id' are required." });
+  }
+  if (String(message).length > MAX_LEN) {
+    return res
+      .status(400)
+      .json({ error: `Message is too long (max ${MAX_LEN} characters).` });
+  }
+
+  // Per-business daily budget — before any OpenAI call, so an over-quota
+  // business spends nothing.
+  const quota = await consumeQuota(business_id);
+  if (!quota.allowed) {
+    return res.status(429).json({
+      error: "This business has reached today's message limit. Please try again tomorrow.",
+      limit_reached: true,
+    });
   }
 
   try {

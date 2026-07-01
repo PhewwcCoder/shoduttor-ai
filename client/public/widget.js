@@ -194,7 +194,8 @@
             status: data.status, ticketId: data.ticket_id,
           });
         } else {
-          addMessage("bot", "Sorry, I couldn't process that. Please try again.");
+          // Surface server messages (rate limit / daily cap / too long) directly.
+          addMessage("bot", (data && data.error) || "Sorry, I couldn't process that. Please try again.");
         }
       })
       .catch(function () {

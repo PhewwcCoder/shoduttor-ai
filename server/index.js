@@ -9,8 +9,13 @@ const nluRoute = require("./routes/nlu");
 const faqRoute = require("./routes/faq");
 const ticketsRoute = require("./routes/tickets");
 const businessesRoute = require("./routes/businesses");
+const { chatLimiter, uploadLimiter } = require("./middleware/rateLimit");
 
 const app = express();
+
+// Behind Render's proxy — trust the first hop so rate limiters key on the real
+// client IP (X-Forwarded-For), not the shared proxy IP.
+app.set("trust proxy", 1);
 
 // The widget runs on other businesses' websites, so the API must accept
 // cross-origin requests. For the prototype we allow all origins; in production
@@ -32,13 +37,15 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "shoduttor.ai", time: new Date().toISOString() });
 });
 
-// Layer 1+2+3 main endpoint.
-app.use("/api/chat", chatRoute);
+// Layer 1+2+3 main endpoint (per-IP rate limited).
+app.use("/api/chat", chatLimiter, chatRoute);
 
 // Layer 1 only — dev/debug endpoint for testing the Banglish parser in isolation.
-app.use("/api/nlu", nluRoute);
+app.use("/api/nlu", chatLimiter, nluRoute);
 
-// FAQ upload (chunk + embed + store) and ticket listing for the admin dashboard.
+// FAQ routes. Rate-limit only the expensive upload path; the dashboard's
+// frequent GET /sources and DELETE pass through freely.
+app.use("/api/faq/upload", uploadLimiter);
 app.use("/api/faq", faqRoute);
 app.use("/api/tickets", ticketsRoute);
 app.use("/api/businesses", businessesRoute);

@@ -64,3 +64,34 @@ as $$
   order by embedding <=> query_embedding
   limit match_count;
 $$;
+
+-- Per-business daily usage counter (abuse / cost cap). One row per business/day.
+create table if not exists usage_daily (
+  business_id text not null,
+  day date not null,
+  count int not null default 0,
+  primary key (business_id, day)
+);
+
+-- Atomically consume 1 unit of a business's daily quota. Returns whether it was
+-- allowed and the resulting count. Row-locked (FOR UPDATE) so concurrent
+-- requests can't race past the limit.
+create or replace function consume_quota(p_business_id text, p_day date, p_limit int)
+returns table(allowed boolean, count int)
+language plpgsql
+as $$
+declare cur int;
+begin
+  insert into usage_daily(business_id, day, count) values (p_business_id, p_day, 0)
+    on conflict (business_id, day) do nothing;
+  select usage_daily.count into cur from usage_daily
+    where business_id = p_business_id and day = p_day for update;
+  if cur >= p_limit then
+    return query select false, cur;
+  else
+    update usage_daily set count = count + 1
+      where business_id = p_business_id and day = p_day;
+    return query select true, cur + 1;
+  end if;
+end;
+$$;

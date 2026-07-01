@@ -44,7 +44,12 @@ export default function ChatWidget({
         },
       ]);
     } catch (err) {
-      setMessages((m) => [...m, { from: "bot", text: `Sorry, something went wrong. (${err.message})` }]);
+      // Server sends friendly text for rate-limit / quota / too-long (429/400);
+      // fall back to a generic line for unexpected errors.
+      setMessages((m) => [
+        ...m,
+        { from: "bot", text: err.message || "Sorry, something went wrong. Please try again." },
+      ]);
     } finally {
       setTyping(false);
     }
